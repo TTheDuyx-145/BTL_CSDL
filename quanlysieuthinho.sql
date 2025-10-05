@@ -1,5 +1,5 @@
 # Cơ sở dữ liệu: 'Quản lý siêu thị nhỏ'
-CREATE TABLE QLSTN;
+CREATE DATABASE QLSTN;
 USE QLSTN;
 
 # Cấu trúc bảng cho bảng 'ChucVu'
