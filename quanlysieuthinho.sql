@@ -222,7 +222,7 @@ INSERT INTO KhachHangVIP VALUES
 (2, 800, 7.50);
 
 # Cấu trúc bảng cho bảng 'KhachHangThamNien'
-CREATE TABLE KhachHangThanhVien (
+CREATE TABLE KhachHangThamVien (
     MaKhachHang INT PRIMARY KEY,
     NgayDangKy DATE,
     LoaiThe VARCHAR(10),
