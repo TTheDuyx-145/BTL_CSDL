@@ -232,7 +232,7 @@ CREATE TABLE KhachHangThanhVien (
 /*
  Đang đổ dũ liệu cho bảng 'KhachHangVIP'
 */
-INSERT INTO KhachHangThanhVien VALUES
+INSERT INTO KhachHangThamVien VALUES
 (1, '2022-05-01', 'Vàng'),
 (3, '2023-06-15', 'Bạc'),
 (5, '2024-01-20', 'Đồng');
