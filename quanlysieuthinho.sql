@@ -1,10 +1,10 @@
-CREATE TABLE QLSTN;
-
 # Cơ sở dữ liệu: 'Quản lý siêu thị nhỏ'
+CREATE TABLE QLSTN;
+USE QLSTN;
 
 # Cấu trúc bảng cho bảng 'ChucVu'
-CREATE TABLE ChucVu(
-	MaChucVu INT PRIMARY KEY,
+CREATE TABLE ChucVu (
+    MaChucVu INT PRIMARY KEY,
     TenChucVu VARCHAR(20)
 );
 
@@ -32,7 +32,7 @@ CREATE TABLE NhanVien (
 CREATE TABLE FullTime (
     MaNhanVien INT PRIMARY KEY,
     HopDongDaiHan VARCHAR(20),
-    LuongCoBan DECIMAL(10, 2),
+    LuongCoBan DECIMAL(10,2),
     FOREIGN KEY (MaNhanVien) REFERENCES NhanVien(MaNhanVien)
 );
 
@@ -41,10 +41,10 @@ CREATE TABLE FullTime (
 */
 
 # Cấu trúc bảng cho bảng 'PartTime'
-CREATE TABLE PartTime(
-	MaNhanVien INT PRIMARY KEY,
-    SoGioLam DECIMAL,
-    LuongTheoGio DECIMAL,
+CREATE TABLE PartTime (
+    MaNhanVien INT PRIMARY KEY,
+    SoGioLam DECIMAL(5,2),
+    LuongTheoGio DECIMAL(10,2),
     FOREIGN KEY (MaNhanVien) REFERENCES NhanVien(MaNhanVien)
 );
 
@@ -53,11 +53,11 @@ CREATE TABLE PartTime(
 */
 
 # Cấu trúc bảng cho bảng  'Luong'
-CREATE TABLE luong(
-	MaNhanVien INT PRIMARY KEY,
+CREATE TABLE Luong (
+    MaNhanVien INT PRIMARY KEY,
     ThoiGian INT,
     NghiKhongPhep INT,
-    LuongThang13 DECIMAL,
+    LuongThang13 DECIMAL(10,2),
     NgayBatDau DATE,
     FOREIGN KEY (MaNhanVien) REFERENCES NhanVien(MaNhanVien)
 );
@@ -123,10 +123,11 @@ CREATE TABLE HangHoa (
 */
 
 # Cấu trúc bảng cho bảng 'ChiTietHoaDon'
-CREATE TABLE ChiTietHoaDon(
-	MaHoaDon INT PRIMARY KEY,
-    MaHH INT PRIMARY KEY,
-    Soluong DECIMAL,
+CREATE TABLE ChiTietHoaDon (
+    MaHoaDon INT,
+    MaHH INT,
+    SoLuong DECIMAL(10,2),
+    PRIMARY KEY (MaHoaDon, MaHH),
     FOREIGN KEY (MaHoaDon) REFERENCES HoaDon(MaHoaDon),
     FOREIGN KEY (MaHH) REFERENCES HangHoa(MaHH)
 );
