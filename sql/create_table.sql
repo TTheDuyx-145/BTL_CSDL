@@ -183,7 +183,7 @@ CREATE TABLE KhachHang_VIP (
 -- KHÁCH HÀNG THÀNH VIÊN
 CREATE TABLE KhachHang_ThanhVien (
     MaKhachHang INT PRIMARY KEY,
-    NgayDangKy DATE,
+    Reset DATE,
     DiemTichLuy INT,
     LoaiThe VARCHAR(60),
     FOREIGN KEY (MaKhachHang) REFERENCES KhachHang(MaKhachHang)
