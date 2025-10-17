@@ -1,5 +1,5 @@
 USE QLCH;
-I.
+-- I.
 # Truy vấn thông tin: sản phẩm, số lượng, giá bán, thành tiền, tổng cộng. với bảng trên
 SELECT 
     h.MaHoaDon,
@@ -64,7 +64,7 @@ JOIN NhanVien nv ON nv.MaNhanVien = h.MaNhanVien
 JOIN PhieuChi pc ON pc.MaNhanVien = nv.MaNhanVien
 WHERE pc.HinhThucThanhToan IN ('Tien mat', 'The', 'Chuyen khoan', 'Ma QR');
 
-II.
+-- II.
 #Danh sách hàng hóa trong kho Truy vấn: mã hàng, tên, loại, giá, số lượng tồn, hạn sử dụng.
 SELECT 
     hh.MaHH,
