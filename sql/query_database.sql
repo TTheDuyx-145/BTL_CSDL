@@ -1,5 +1,5 @@
 USE QLCH;
-
+I.
 # Truy vấn thông tin: sản phẩm, số lượng, giá bán, thành tiền, tổng cộng. với bảng trên
 SELECT 
     h.MaHoaDon,
@@ -64,6 +64,7 @@ JOIN NhanVien nv ON nv.MaNhanVien = h.MaNhanVien
 JOIN PhieuChi pc ON pc.MaNhanVien = nv.MaNhanVien
 WHERE pc.HinhThucThanhToan IN ('Tien mat', 'The', 'Chuyen khoan', 'Ma QR');
 
+II.
 #Danh sách hàng hóa trong kho Truy vấn: mã hàng, tên, loại, giá, số lượng tồn, hạn sử dụng.
 SELECT 
     hh.MaHH,
@@ -163,7 +164,164 @@ ORDER BY
     hh.HSD ASC,
     hh.SoLuong ASC;
 
+-- III. Phân hệ báo cáo và thống kê --
+-- 1. Truy vấn tổng doanh thu theo ngày, tháng --
+SELECT 
+	distinct hd.NgayLapHoaDon, 
+    SUM(ct.ThanhTien) OVER (PARTITION BY hd.NgayLapHoaDon) AS TongTheoNgay
+FROM ChiTietHoaDon ct
+JOIN HoaDon hd
+ON ct.MaHoaDon = hd.MaHoaDon
+order by hd.NgayLapHoaDon;
+-- Truy vấn tổng doanh thu theo tháng --
+SELECT 
+	distinct hd.NgayLapHoaDon, 
+    SUM(ct.ThanhTien) OVER (PARTITION BY YEAR(hd.NgayLapHoaDon), MONTH(hd.NgayLapHoaDon)) AS TongTheoThang
+FROM ChiTietHoaDon ct
+JOIN HoaDon hd
+ON ct.MaHoaDon = hd.MaHoaDon
+order by hd.NgayLapHoaDon;
 
+-- 2. Doanh thu theo nhân viên trong năm nay --
+SELECT 
+	distinct nv.HoVaTen,
+    SUM(ct.ThanhTien) OVER (PARTITION BY YEAR(hd.NgayLapHoaDon), nv.HoVaTen) AS TongTheoNam
+FROM ChiTietHoaDon ct
+JOIN HoaDon hd
+ON ct.MaHoaDon = hd.MaHoaDon
+JOIN NhanVien nv
+on nv.MaNhanVien = hd.MaNhanVien
+WHERE YEAR(hd.NgayLapHoaDon) = YEAR(current_date())
+order by TongTheoNam;
+
+-- 3. Doanh thu theo loại hàng --
+SELECT 
+	distinct hh.TenHangHoa,
+    pn.DonGiaNhap as GiaNhap,
+    hh.GiaBan as GiaXuat,
+    (hh.GiaBan - pn.DonGiaNhap) as LoiNhuan
+FROM ChiTietPhieuNhap pn
+JOIN HangHoa hh
+ON pn.MaHH= hh.MaHH
+order by LoiNhuan desc;
+
+-- 4. Doanh thu xếp theo sản phẩm bán chạy/bán chậm --
+SELECT 
+	distinct hh.TenHangHoa,
+    SUM(px.SoLuongXuat) OVER (PARTITION BY(px.MaHH)) AS SoLuongDaBan
+FROM HangHoa hh
+JOIN ChiTietPhieuXuat px
+ON hh.MaHH = px.MaHH
+ORDER BY SoLuongDaBan DESC;
+
+-- 5. Giá trị tồn kho --
+SELECT
+	distinct TenHangHoa,
+    SoLuong,
+    GiaBan,
+    (SoLuong*GiaBan) TongGiaTri
+FROM HangHoa;
+    
+-- 6. Báo cáo tổng hợp --
+SELECT
+    DATE(hd.NgayLapHoaDon) AS Ngay,
+
+    -- Doanh thu mỗi ngày
+    SUM(cthd.ThanhTien) AS DoanhThu,
+
+    -- Số hóa đơn mỗi ngày
+    COUNT(DISTINCT hd.MaHoaDon) AS SoHoaDon,
+
+    -- Số khách hàng khác nhau trong ngày
+    COUNT(DISTINCT hd.MaKhachHang) AS SoKhachHang,
+
+    -- Số sản phẩm dưới 20 (không phụ thuộc ngày)
+    (SELECT COUNT(*) FROM HangHoa WHERE SoLuong < 100) AS SoSanPhamSapHet
+FROM HoaDon hd
+JOIN ChiTietHoaDon cthd
+    ON cthd.MaHoaDon = hd.MaHoaDon
+GROUP BY DATE(hd.NgayLapHoaDon)
+ORDER BY Ngay;
+
+
+
+-- IV. Phân hệ quản lí danh mục --
+-- 1. Danh sách nhân viên --
+SELECT
+	nv.HoVaTen,
+    nv.GioiTinh,
+    cv.TenChucVu,
+    nv.SoDienThoai
+FROM NhanVien nv
+JOIN ChucVu cv
+ON nv.MaChucVu = cv.MaChucVu;
+
+-- 2. Lịch sử bán hàng của nhân viên --
+SELECT * FROM hoadon;
+SELECT 
+    nv.HoVaTen,
+    COUNT(distinct hd.MaHoaDon) AS TongHoaDon, -- có distinct vì 1 mã hóa đơn có nhiều loại hàng, gây ra lặp thông tin --
+    SUM(cthd.ThanhTien) AS TongDoanhThu
+FROM ChiTietHoaDon cthd
+JOIN HoaDon hd
+    ON cthd.MaHoaDon = hd.MaHoaDon
+JOIN NhanVien nv
+    ON nv.MaNhanVien = hd.MaNhanVien
+GROUP BY nv.HoVaTen
+ORDER BY TongDoanhThu DESC;
+
+-- 3. Danh sách khách hàng --
+ SELECT 
+    kh.*,
+    CASE
+        WHEN tv.MaKhachHang IS NOT NULL THEN 'Thành viên'
+        WHEN vip.MaKhachHang IS NOT NULL THEN 'VIP'
+        ELSE 'Thường'
+    END AS LoaiKhach
+FROM KhachHang kh
+LEFT JOIN khachhang_thanhvien tv 
+    ON kh.MaKhachHang = tv.MaKhachHang
+LEFT JOIN khachhang_vip vip
+    ON kh.MaKhachHang = vip.MaKhachHang;
+
+-- 4. Lịch sử mua hàng theo khách hàng --
+SELECT 
+    kh.TenKhachHang,
+    hh.TenHangHoa,
+    SUM(cthd.ThanhTien) AS TongTien,
+    MAX(hd.NgayLapHoaDon) AS NgayMuaGanNhat
+FROM ChiTietHoaDon cthd
+JOIN HangHoa hh
+    ON cthd.MaHH = hh.MaHH
+JOIN HoaDon hd
+    ON hd.MaHoaDon = cthd.MaHoaDon
+JOIN KhachHang kh
+    ON kh.MaKhachHang = hd.MaKhachHang
+GROUP BY kh.TenKhachHang, hh.TenHangHoa
+ORDER BY kh.TenKhachHang, NgayMuaGanNhat DESC;
+
+-- 5. Danh sách nhà cung cấp --
+SELECT 
+	ncc.TenNhaCungCap,
+    ncc.DiaChi,
+    ncc.SoDienThoai,
+    lh.NgayNhap
+FROM nhacungcap ncc
+JOIN hopdong hd
+	ON ncc.MaNhaCungCap = hd.MaNhaCungCap
+JOIN LoHang lh
+	ON hd.MaHopDong = lh.MaHopDong;
+    
+-- 6. Loại Hàng Hóa --
+SELECT 
+	distinct lh.MaLoaiHang,
+	lh.TenLoaiHang,
+    COUNT(hh.MaLoaiHang) OVER (partition by hh.MaLoaiHang) SoLuongSanPhamTheoLoai,
+    SUM(hh.GiaBan) OVER (partition by hh.MaLoaiHang) TongDoanhThuLoaiHang
+FROM HangHoa hh
+JOIN LoaiHang lh
+	ON hh.MaLoaiHang = lh.MaLoaiHang
+;
 
 
 
